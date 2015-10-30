@@ -1,0 +1,70 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package alcatraaaz.server;
+
+import spread.*;
+import alcatraaaz.common.Util;
+import java.net.ConnectException;
+import org.apache.log4j.Logger;
+
+/**
+ *
+ * @author MartinaB
+ */
+public class Spread {
+    // Singleton Instance
+    private static SpreadServer instance = null;
+    
+    // Logger    
+    private static Logger l = Util.getLogger();
+    
+    public static SpreadServer open()
+    {
+        try 
+        {
+            instance = new SpreadServer(SpreadServer.getAddr(Util.getSpreadServerAddr()),
+                                        SpreadServer.getPort(Util.getSpreadServerPort()),
+                                        Util.getUniqueName(Util.getSpreadGroupName()),
+                                        Util.getSpreadGroupName());
+        } 
+        catch (SpreadException e) 
+        {
+            l.fatal("SPREAD: Unable to connect to Server " + 
+                    Util.getSpreadServerAddr() + ":" + Util.getSpreadServerPort());
+            System.exit(1);
+        }    
+        
+        return instance;
+    }
+    
+    public static void sync()
+    {
+        instance.sync();
+    }
+    
+    public static SpreadServer server()
+    {        
+        // create singelton if there is no instance yet
+        if (instance == null) 
+        {
+            instance = open();
+        }
+        
+        if(!instance.isSynced()) 
+        {
+            sync();
+        }
+        
+        return instance;
+    }
+    
+    public static SpreadServer close()
+    {
+        instance.close();
+        instance = null;
+        return null;
+    }
+}
